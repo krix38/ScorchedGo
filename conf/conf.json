@@ -1,6 +1,5 @@
 {
     "Port":              ":8080",
     "Language":          "en",
-    "StaticFilesPath":   "src/github.com/krix38/ScorchedGo/web/static/",
-    "StaticFilesURL":    "/static/"
+    "StaticFilesPath":   "src/github.com/krix38/ScorchedGo/web/static/"
 }

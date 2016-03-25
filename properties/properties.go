@@ -10,7 +10,6 @@ type configuration struct {
 	Port            string
 	Language        string
 	StaticFilesPath string
-	StaticFilesURL  string
 }
 
 type messages struct {

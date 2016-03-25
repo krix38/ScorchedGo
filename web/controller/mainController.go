@@ -9,8 +9,9 @@ import (
 )
 
 func registerStaticFileHandler() {
-	http.Handle(properties.Configuration.StaticFilesURL, http.StripPrefix(
-		properties.Configuration.StaticFilesURL, http.FileServer(
+	staticFilesUrl := "/static/"
+	http.Handle(staticFilesUrl, http.StripPrefix(
+		staticFilesUrl, http.FileServer(
 			http.Dir(
 				properties.Configuration.StaticFilesPath))))
 }
