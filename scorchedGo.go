@@ -3,18 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/krix38/ScorchedGo/propertiesReader"
+	"github.com/krix38/ScorchedGo/properties"
+	"github.com/krix38/ScorchedGo/web/controller"
 )
 
 func main() {
-	conf, err := propertiesReader.GetConfiguration()
-	if err != nil {
-		log.Panic("error reading configuartion, stopping application...")
-	}
-	messages, err := propertiesReader.GetMessages(conf)
-	if err != nil {
-		log.Panic("error reading messages, stopping application...")
-	}
-	log.Print(messages.DebugStarting + conf.Port)
-	log.Print(messages.DebugLanguageInfo)
+	log.Print(properties.Messages.DebugStarting + properties.Configuration.Port)
+	log.Print(properties.Messages.DebugLanguageInfo)
+	controller.RunWebController()
 }
