@@ -23,14 +23,14 @@ func GetConfiguration() *configuration {
 	if err != nil {
 		file, err = os.Open("src/github.com/krix38/ScorchedGo/conf/conf.json")
 		if err != nil {
-			log.Panic("error opening configuration file")
+			log.Fatal("error opening configuration file")
 		}
 	}
 	decoder := json.NewDecoder(file)
 	conf := new(configuration)
 	err = decoder.Decode(conf)
 	if err != nil {
-		log.Panic("error decoding json configuration file")
+		log.Fatal("error decoding json configuration file")
 	}
 	return conf
 }
@@ -42,14 +42,14 @@ func GetMessages(conf *configuration) *messages {
 	if err != nil {
 		file, err = os.Open("src/github.com/krix38/ScorchedGo/conf/" + filename)
 		if err != nil {
-			log.Panic("error opening " + filename + " file")
+			log.Fatal("error opening " + filename + " file")
 		}
 	}
 	decoder := json.NewDecoder(file)
 	msg := new(messages)
 	err = decoder.Decode(msg)
 	if err != nil {
-		log.Panic("error decoding json " + filename + " file")
+		log.Fatal("error decoding json " + filename + " file")
 	}
 	return msg
 }
