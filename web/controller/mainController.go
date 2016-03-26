@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/krix38/ScorchedGo/external/github.com/gorilla/context"
+	"github.com/gorilla/context"
 	"github.com/krix38/ScorchedGo/properties"
 )
 
