@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/krix38/ScorchedGo/properties"
+	"github.com/krix38/ScorchedGo/web/controller/handler/page"
 )
 
 func registerStaticFileHandler() {
@@ -17,6 +18,12 @@ func registerStaticFileHandler() {
 }
 
 func RunWebController() {
+
 	registerStaticFileHandler()
+
+	http.HandleFunc("/", page.Main)
+
+	//routing := make(map[string]func(http.ResponseWriter, *http.Request))
+
 	log.Fatal(http.ListenAndServe(properties.Configuration.Port, context.ClearHandler(http.DefaultServeMux)))
 }

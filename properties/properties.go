@@ -7,9 +7,10 @@ import (
 )
 
 type configuration struct {
-	Port            string
-	Language        string
-	StaticFilesPath string
+	Port              string
+	Language          string
+	StaticFilesPath   string
+	TemplateFilesPath string
 }
 
 type messages struct {
@@ -54,5 +55,5 @@ func GetMessages(conf *configuration) *messages {
 	return msg
 }
 
-var Configuration *configuration = GetConfiguration()
-var Messages *messages = GetMessages(Configuration)
+var Configuration = GetConfiguration()
+var Messages = GetMessages(Configuration)
