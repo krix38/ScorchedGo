@@ -17,11 +17,15 @@ func registerStaticFileHandler() {
 				properties.Configuration.StaticFilesPath))))
 }
 
+func registerMainPageHandler() {
+	http.HandleFunc("/", page.Main)
+}
+
 func RunWebController() {
 
 	registerStaticFileHandler()
 
-	http.HandleFunc("/", page.Main)
+	registerMainPageHandler()
 
 	//routing := make(map[string]func(http.ResponseWriter, *http.Request))
 
