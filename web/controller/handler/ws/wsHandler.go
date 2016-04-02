@@ -12,11 +12,11 @@ var upgrader = websocket.Upgrader{
 func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	connection, err := upgrader.Upgrade(w, r, nil)
 	for {
-		messageType, p, err := conn.ReadMessage()
+		messageType, message, err := conn.ReadMessage()
 		if err != nil {
 			return
 		}
-		if err = conn.WriteMessage(messageType, p); err != nil {
+		if err = conn.WriteMessage(messageType, message); err != nil {
 			return err
 		}
 	}
