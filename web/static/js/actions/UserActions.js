@@ -3,7 +3,9 @@
 var Reflux = require("reflux");
 
 var UserActions = Reflux.createActions([
+	"renderApp",
     "getAllChannels"
+	
 ]);
 
-exports.UsersActions = UserActions;
+exports.UserActions = UserActions;
