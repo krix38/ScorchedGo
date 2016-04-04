@@ -26,7 +26,7 @@ var UserStore = Reflux.createStore({
 			
 			renderApp: function(renderData){
 				$.ajax({
-					url: "api/amIConnected",
+					url: "api/connectionStatus",
 					dataType: 'json',
 					cache: false,
 					success: function(sessionInfo) {
@@ -35,7 +35,7 @@ var UserStore = Reflux.createStore({
 						}else{
 							this.render(renderData.ifNotSignedIn, renderData.handler);
 						}
-					},
+					}.bind(this),
 					error: function(xhr, status, err) {
 						this.render(renderData.ifError, renderData.handler);
 					}.bind(this)

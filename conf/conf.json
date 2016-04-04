@@ -1,6 +1,6 @@
 {
     "Port":              ":8080",
-    "Language":          "en",
+    "DebugLanguage":     "en",
     "StaticFilesPath":   "src/github.com/krix38/ScorchedGo/web/static/",
 	"TemplateFilesPath": "src/github.com/krix38/ScorchedGo/web/template/"
 }

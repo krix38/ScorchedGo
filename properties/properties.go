@@ -8,19 +8,22 @@ import (
 
 type configuration struct {
 	Port              string
-	Language          string
+	DebugLanguage     string
 	StaticFilesPath   string
 	TemplateFilesPath string
 }
 
 type messages struct {
-	DebugStarting     string
-	DebugLanguageInfo string
+	DebugStarting      string
+	DebugLanguageInfo  string
+	DebugJsonParseFail string
+	BadMethod          string
 }
 
 func GetConfiguration() *configuration {
 	file := new(os.File)
 	file, err := os.Open("conf/conf.json")
+	defer file.Close()
 	if err != nil {
 		file, err = os.Open("src/github.com/krix38/ScorchedGo/conf/conf.json")
 		if err != nil {
@@ -38,8 +41,9 @@ func GetConfiguration() *configuration {
 
 func GetMessages(conf *configuration) *messages {
 	file := new(os.File)
-	filename := "messages_" + conf.Language + ".json"
+	filename := "messages_" + conf.DebugLanguage + ".json"
 	file, err := os.Open("conf/" + filename)
+	defer file.Close()
 	if err != nil {
 		file, err = os.Open("src/github.com/krix38/ScorchedGo/conf/" + filename)
 		if err != nil {

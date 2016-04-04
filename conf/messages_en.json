@@ -1,4 +1,6 @@
 {
-	"DebugStarting":      "Starting http server on port ",
-	"DebugLanguageInfo":  "English language set"
+	"DebugStarting":        "Starting http server on port ",
+	"DebugLanguageInfo":    "English language set",
+	"DebugJsonParseFail":   "Failed parsing json",
+	"BadMethod":            "Bad request method"
 }
