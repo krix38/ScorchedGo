@@ -9,14 +9,14 @@ import (
 )
 
 type connectionInfo struct {
-	signedIn bool
+	SignedIn bool
 }
 
 var ConnectionStatus = createRestHandler(connectionStatus, []string{"GET"})
 
 func connectionStatus() interface{}{
 		/* TODO: check connection status */
-		return connectionInfo{signedIn: false}
+		return connectionInfo{SignedIn: false}
 }
 
 func createRestHandler(handler func() interface{}, acceptedMethods []string) http.HandlerFunc {

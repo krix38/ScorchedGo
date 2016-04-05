@@ -30,7 +30,7 @@ var UserStore = Reflux.createStore({
 					dataType: 'json',
 					cache: false,
 					success: function(sessionInfo) {
-						if(sessionInfo.signedIn){
+						if(sessionInfo.SignedIn){
 							this.render(renderData.ifSignedIn, renderData.handler);
 						}else{
 							this.render(renderData.ifNotSignedIn, renderData.handler);
