@@ -4,35 +4,87 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	
+
 	"github.com/krix38/ScorchedGo/properties"
 )
+
+type restHandlerData struct {
+	writer       http.ResponseWriter
+	reader       *http.Request
+	inputJsonObj interface{}
+}
 
 type connectionInfo struct {
 	SignedIn bool
 }
 
-var ConnectionStatus = createRestHandler(connectionStatus, []string{"GET"})
-
-func connectionStatus(w http.ResponseWriter, r *http.Request) interface{}{
-		/* TODO: check connection status */
-		return connectionInfo{SignedIn: false}
+//
+type testRest struct {
+	TestVal string
 }
 
-func createRestHandler(handler func(w http.ResponseWriter, r *http.Request) interface{}, acceptedMethods []string) http.HandlerFunc {
+var TestFunc = createRestHandler(testfunc, []string{"POST"}, testRest{})
+
+func testfunc(restData *restHandlerData) (interface{}, error){
+	return connectionInfo{SignedIn: true}, nil
+}
+//
+
+var ConnectionStatus = createRestHandler(connectionStatus, []string{"GET"}, nil)
+
+func connectionStatus(restData *restHandlerData) (interface{}, error) {
+	/* TODO: check connection status */
+	log.Print("inside connection status handler")
+	return connectionInfo{SignedIn: false}, nil
+}
+
+func createRestHandler(handler func(*restHandlerData) (interface{}, error), acceptedMethods []string, inputJson interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		for _, method := range acceptedMethods {
 			if r.Method == method {
-				w.Header().Set("Content-Type", "application/json")
-				object := handler(w, r)
-				jsonObject, err := json.Marshal(object)
+				restData, err := prepareHandler(w, r, inputJson)
 				if err != nil {
-					log.Fatal(properties.Messages.DebugJsonParseFail)
+					httpErrorPrint(w, "error parsing input json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
 				}
-				w.Write(jsonObject)
-				return
+				object, err := handler(restData)
+				if object != nil {
+					jsonObject, err := json.Marshal(object)
+					if err != nil {
+						httpErrorPrint(w, "error parsing output json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
+					}
+					w.Write(jsonObject)
+					return
+				} else {
+					if err != nil {
+						httpErrorPrint(w, "internal server error", http.StatusInternalServerError, properties.Messages.DebugInternalServerError)
+					}
+					http.Error(w, "", http.StatusOK)
+				}
 			}
 		}
-		http.Error(w, properties.Messages.BadMethod+": "+r.Method, http.StatusBadRequest)
+		http.Error(w, "bad request method: "+r.Method, http.StatusBadRequest)
 	}
+}
+
+func prepareHandler(w http.ResponseWriter, r *http.Request, inputJson interface{}) (*restHandlerData, error) {
+	restData := restHandlerData{writer: w, reader: r}
+	if inputJson != nil {
+		err := decodeInputJson(inputJson, r)
+		restData.inputJsonObj = inputJson
+		if err != nil {
+			return nil, err
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return &restData, nil
+}
+
+func decodeInputJson(inputJson interface{}, r *http.Request) error {
+	dec := json.NewDecoder(r.Body)
+	return dec.Decode(&inputJson)
+}
+
+func httpErrorPrint(w http.ResponseWriter, message string, httpcode int, logMessage string) {
+	http.Error(w, message, httpcode)
+	log.Println(logMessage)
 }

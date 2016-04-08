@@ -14,10 +14,10 @@ type configuration struct {
 }
 
 type messages struct {
-	DebugStarting      string
-	DebugLanguageInfo  string
-	DebugJsonParseFail string
-	BadMethod          string
+	DebugStarting            string
+	DebugLanguageInfo        string
+	DebugJsonParseFail       string
+	DebugInternalServerError string
 }
 
 func GetConfiguration() *configuration {
