@@ -23,10 +23,7 @@ func RunWebController() {
 
 	routing["/"]                         =    handler{handlerFunc: page.Main, session: false}
 	routing["/api/connectionStatus"]     =    handler{handlerFunc: rest.ConnectionStatus, session: false}
-	//
-	routing["/api/test"] = handler{handlerFunc: rest.TestFunc, session: false}
-	//
-
+	
 	mapHandlers(routing)
 
 	log.Fatal(http.ListenAndServe(properties.Configuration.Port, context.ClearHandler(http.DefaultServeMux)))
