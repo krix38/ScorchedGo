@@ -23,6 +23,7 @@ func RunWebController() {
 
 	routing["/"]                         =    handler{handlerFunc: page.Main, session: false}
 	routing["/api/connectionStatus"]     =    handler{handlerFunc: rest.ConnectionStatus, session: false}
+	routing["/api/getAllChannels"]       =    handler{handlerFunc: rest.GetAllChannels, session: true}
 	
 	mapHandlers(routing)
 
