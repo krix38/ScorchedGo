@@ -8,6 +8,7 @@ import (
 	"github.com/krix38/ScorchedGo/properties"
 	"github.com/krix38/ScorchedGo/web/controller/handler/page"
 	"github.com/krix38/ScorchedGo/web/controller/handler/rest"
+	"github.com/krix38/ScorchedGo/web/session"
 )
 
 type handler struct {
@@ -22,7 +23,7 @@ func RunWebController() {
 	routing := make(map[string]handler)
 
 	routing["/"]                         =    handler{handlerFunc: page.Main, session: false}
-	routing["/api/connectionStatus"]     =    handler{handlerFunc: rest.ConnectionStatus, session: false}
+	routing["/api/getConnectionStatus"]  =    handler{handlerFunc: rest.GetConnectionStatus, session: false}
 	routing["/api/getAllChannels"]       =    handler{handlerFunc: rest.GetAllChannels, session: true}
 	
 	mapHandlers(routing)
@@ -37,14 +38,10 @@ func registerStaticFileHandler(staticFilesUrl string) {
 				properties.Configuration.StaticFilesPath))))
 }
 
-func createSessionHandler(url string, handler func(http.ResponseWriter, *http.Request)) {
-	http.HandleFunc(url, handler)
-}
-
 func mapHandlers(routingMap map[string]handler) {
 	for url, handler := range routingMap {
 		if handler.session {
-			createSessionHandler(url, handler.handlerFunc)
+			session.CreateSessionHandler(url, handler.handlerFunc)
 		} else {
 			http.HandleFunc(url, handler.handlerFunc)
 		}
