@@ -16,29 +16,40 @@ type RestHandlerData struct {
 
 func CreateRestHandler(handler func(*RestHandlerData) (interface{}, error), acceptedMethods []string, inputJson interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, method := range acceptedMethods {
-			if r.Method == method {
-				restData, err := prepareHandler(w, r, inputJson)
-				if err != nil {
-					httpErrorPrinter.Print(w, r, "error parsing input json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
-				}
-				object, err := handler(restData)
-				if object != nil {
-					jsonObject, err := json.Marshal(object)
-					if err != nil {
-						httpErrorPrinter.Print(w, r, "error parsing output json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
-					}
-					w.Write(jsonObject)
-					return
-				} else {
-					if err != nil {
-						httpErrorPrinter.Print(w, r, "internal server error", http.StatusInternalServerError, properties.Messages.DebugInternalServerError)
-					}
-					http.Error(w, "", http.StatusOK)
-				}
-			}
+		buildRestHandler(w, r, handler, acceptedMethods, inputJson)
+	}
+}
+
+func buildRestHandler(w http.ResponseWriter, r *http.Request, handler func(*RestHandlerData) (interface{}, error), acceptedMethods []string, inputJson interface{}) {
+	createdHandler := false
+	for _, method := range acceptedMethods {
+		if r.Method == method {
+			processRestHandler(w, r, handler, inputJson)
+			createdHandler = true
 		}
-		http.Error(w, "bad request method: "+r.Method, http.StatusBadRequest)
+	}
+	if(!createdHandler){
+		http.Error(w, "bad request method: "+r.Method, http.StatusBadRequest)	
+	}
+}
+
+func processRestHandler(w http.ResponseWriter, r *http.Request, handler func(*RestHandlerData) (interface{}, error), inputJson interface{}) {
+	restData, err := prepareHandler(w, r, inputJson)
+	if err != nil {
+		httpErrorPrinter.Print(w, r, "error parsing input json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
+	}
+	object, err := handler(restData)
+	if object != nil {
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			httpErrorPrinter.Print(w, r, "error parsing output json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
+		}
+		w.Write(jsonObject)
+	} else {
+		if err != nil {
+			httpErrorPrinter.Print(w, r, "internal server error", http.StatusInternalServerError, properties.Messages.DebugInternalServerError)
+		}
+		http.Error(w, "", http.StatusOK)
 	}
 }
 
