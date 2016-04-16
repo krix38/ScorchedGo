@@ -6,9 +6,9 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/krix38/ScorchedGo/properties"
+	"github.com/krix38/ScorchedGo/web"
 	"github.com/krix38/ScorchedGo/web/controller/handler/page"
 	"github.com/krix38/ScorchedGo/web/controller/handler/rest"
-	"github.com/krix38/ScorchedGo/web"
 )
 
 func RunWebController() {
@@ -17,9 +17,10 @@ func RunWebController() {
 
 	routing := make(map[string]web.Handler)
 
-	routing["/"]                         =    web.Handler{HandlerFunc: page.Main, Session: false}
-	routing["/api/getConnectionStatus"]  =    web.Handler{HandlerFunc: rest.GetConnectionStatus, Session: false}
-	routing["/api/getAllChannels"]       =    web.Handler{HandlerFunc: rest.GetAllChannels, Session: true}
+	routing["/"]                          =  web.Handler{ HandlerFunc: page.Main,                 Session: false }
+	routing["/api/connectionStatus/get"]  =  web.Handler{ HandlerFunc: rest.GetConnectionStatus,  Session: false }
+	routing["/api/room/create"]           =  web.Handler{ HandlerFunc: rest.CreateRoom,           Session: false }
+	routing["/api/allChannels/get"]       =  web.Handler{ HandlerFunc: rest.GetAllRooms,          Session: true  }
 	
 	web.MapHandlers(routing)
 

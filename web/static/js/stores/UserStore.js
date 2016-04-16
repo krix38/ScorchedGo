@@ -26,7 +26,7 @@ var UserStore = Reflux.createStore({
 			
 			renderApp: function(renderData){
 				$.ajax({
-					url: "api/getConnectionStatus",
+					url: "api/connectionStatus/get",
 					dataType: 'json',
 					cache: false,
 					success: function(sessionInfo) {
