@@ -25,3 +25,7 @@ type Room struct {
 type RoomsList struct {
 	Rooms []Room
 }
+
+type Msg struct {
+	Message string
+}

@@ -20,7 +20,7 @@ func RunWebController() {
 	routing["/"]                          =  web.Handler{ HandlerFunc: page.Main,                 Session: false }
 	routing["/api/connectionStatus/get"]  =  web.Handler{ HandlerFunc: rest.GetConnectionStatus,  Session: false }
 	routing["/api/room/create"]           =  web.Handler{ HandlerFunc: rest.CreateRoom,           Session: false }
-	routing["/api/allChannels/get"]       =  web.Handler{ HandlerFunc: rest.GetAllRooms,          Session: true  }
+	routing["/api/rooms/get"]             =  web.Handler{ HandlerFunc: rest.GetAllRooms,          Session: false  }
 	
 	web.MapHandlers(routing)
 

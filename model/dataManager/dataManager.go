@@ -1,8 +1,9 @@
 package dataManager
 
 import (
-//	"github.com/krix38/ScorchedGo/model/entity"
 	"log"
+
+	"github.com/krix38/ScorchedGo/model/entity"
 )
 
 type Action int
@@ -15,30 +16,69 @@ const (
 )
 
 type EntityAction struct {
-	Entity interface{}
-	Action Action
+	Action         Action
+	ResponseChan   chan interface{}
+	Entity         interface{}
+	AdditionalData interface{}
 }
 
-var RoomAction    = make(chan EntityAction)
-var PlayerAction  = make(chan EntityAction)
+type sharedData struct {
+	roomsId   int64
+	rooms     entity.RoomsList
+	playersId int64
+	players   entity.PlayersList
+}
 
-func dispatchPlayerAction(action EntityAction){
+var RoomAction   = make(chan EntityAction)
+var PlayerAction = make(chan EntityAction)
+
+func dispatchPlayerAction(action EntityAction, memData *sharedData) {
 	log.Println("triggered player action") /* TODO */
 }
 
-func dispatchRoomAction(action EntityAction){
-	log.Println("triggered room action")   /* TODO */
+func roomRead(action EntityAction, memData *sharedData) {
+	if action.AdditionalData == nil { /* no filters */
+		action.ResponseChan <- memData.rooms
+	} /* TODO: filter response */
+}
+
+func roomCreate(action EntityAction, memData *sharedData) {
+	room, ok := action.Entity.(entity.Room)
+	if ok {
+		memData.roomsId += 1
+		room.Id = memData.roomsId
+		memData.rooms.Rooms = append(memData.rooms.Rooms, room)
+	} /* TODO: if not ok */
+}
+
+func dispatchRoomAction(action EntityAction, memData *sharedData) {
+	switch action.Action {
+
+	case CREATE:
+		roomCreate(action, memData)
+	case READ:
+		roomRead(action, memData)
+	case UPDATE:
+	case DELETE:
+
+	}
 }
 
 func RunDataManager() {
-//	roomList   := new(entity.RoomsList)
-//	playerList := new(entity.PlayersList)
+	memData := sharedData{
+		rooms:     entity.RoomsList{Rooms: []entity.Room{}},
+		roomsId:   0,
+		players:   entity.PlayersList{Players: []entity.Player{}},
+		playersId: 0,
+	}
 	for {
 		select {
-			case action := <-RoomAction:
-				dispatchRoomAction(action)
-			case action := <-PlayerAction:
-				dispatchPlayerAction(action)
-		}		
+
+		case action := <-RoomAction:
+			dispatchRoomAction(action, &memData)
+		case action := <-PlayerAction:
+			dispatchPlayerAction(action, &memData)
+
+		}
 	}
 }

@@ -1,14 +1,15 @@
 package rest
 
 import (
-	"github.com/krix38/ScorchedGo/model/dataManager"
+	"github.com/krix38/ScorchedGo/model/dao"
 	"github.com/krix38/ScorchedGo/model/entity"
 	"github.com/krix38/ScorchedGo/web/restFactory"
+	"errors"
 )
 
-var GetConnectionStatus = restFactory.CreateRestHandler(getConnectionStatus, []string{"GET"}, nil)
-var GetAllRooms         = restFactory.CreateRestHandler(getAllRooms,         []string{"GET"}, nil)
-var CreateRoom          = restFactory.CreateRestHandler(createRoom,          []string{"GET"}, nil)
+var GetConnectionStatus = restFactory.CreateRestHandler(getConnectionStatus, []string{"GET"},    nil)
+var GetAllRooms         = restFactory.CreateRestHandler(getAllRooms,         []string{"GET"},    nil)
+var CreateRoom          = restFactory.CreateRestHandler(createRoom,          []string{"CREATE"}, entity.Room{})
 
 func getConnectionStatus(restData *restFactory.RestHandlerData) (interface{}, error) {
 	/* TODO: check connection status */
@@ -16,14 +17,19 @@ func getConnectionStatus(restData *restFactory.RestHandlerData) (interface{}, er
 }
 
 func getAllRooms(restData *restFactory.RestHandlerData) (interface{}, error) {
-	/* TODO: get all channels */
-	return entity.RoomsList{Rooms: []entity.Room{}}, nil
+	rooms := dao.LoadRooms()
+	if rooms != nil {
+		return rooms, nil
+	}else{
+		return nil, errors.New("error loading rooms list")
+	}
 }
 
 func createRoom(restData *restFactory.RestHandlerData) (interface{}, error) {
-	dataManager.RoomAction <- dataManager.EntityAction{
-		Entity: entity.Room{},
-		Action: dataManager.CREATE,
+	room, ok := restData.InputJsonObj.(entity.Room)
+	if ok {
+		dao.CreateRoom(room)
+		return entity.Msg{ Message: "room created" }, nil
 	}
-	return nil, nil
+	return nil, errors.New("error creating room")
 }

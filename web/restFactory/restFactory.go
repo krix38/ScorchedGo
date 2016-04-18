@@ -9,9 +9,9 @@ import (
 )
 
 type RestHandlerData struct {
-	writer       http.ResponseWriter
-	reader       *http.Request
-	inputJsonObj interface{}
+	Writer       http.ResponseWriter
+	Reader       *http.Request
+	InputJsonObj interface{}
 }
 
 func CreateRestHandler(handler func(*RestHandlerData) (interface{}, error), acceptedMethods []string, inputJson interface{}) http.HandlerFunc {
@@ -28,8 +28,8 @@ func buildRestHandler(w http.ResponseWriter, r *http.Request, handler func(*Rest
 			createdHandler = true
 		}
 	}
-	if(!createdHandler){
-		http.Error(w, "bad request method: "+r.Method, http.StatusBadRequest)	
+	if !createdHandler {
+		http.Error(w, "bad request method: "+r.Method, http.StatusBadRequest)
 	}
 }
 
@@ -37,27 +37,30 @@ func processRestHandler(w http.ResponseWriter, r *http.Request, handler func(*Re
 	restData, err := prepareHandler(w, r, inputJson)
 	if err != nil {
 		httpErrorPrinter.Print(w, r, "error parsing input json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
+		return
 	}
 	object, err := handler(restData)
 	if object != nil {
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
 			httpErrorPrinter.Print(w, r, "error parsing output json", http.StatusBadRequest, properties.Messages.DebugJsonParseFail)
+			return
 		}
 		w.Write(jsonObject)
 	} else {
 		if err != nil {
-			httpErrorPrinter.Print(w, r, "internal server error", http.StatusInternalServerError, properties.Messages.DebugInternalServerError)
+			httpErrorPrinter.Print(w, r, "internal server error", http.StatusInternalServerError, err.Error())
+			return
 		}
 		http.Error(w, "", http.StatusOK)
 	}
 }
 
 func prepareHandler(w http.ResponseWriter, r *http.Request, inputJson interface{}) (*RestHandlerData, error) {
-	restData := RestHandlerData{writer: w, reader: r}
+	restData := RestHandlerData{Writer: w, Reader: r}
 	if inputJson != nil {
 		err := decodeInputJson(inputJson, r)
-		restData.inputJsonObj = inputJson
+		restData.InputJsonObj = inputJson
 		if err != nil {
 			return nil, err
 		}
