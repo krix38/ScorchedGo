@@ -2,7 +2,7 @@ package dataManager
 
 import (
 	"log"
-
+	"errors"
 	"github.com/krix38/ScorchedGo/model/entity"
 )
 
@@ -48,7 +48,10 @@ func roomCreate(action EntityAction, memData *sharedData) {
 		memData.roomsId += 1
 		room.Id = memData.roomsId
 		memData.rooms.Rooms = append(memData.rooms.Rooms, room)
-	} /* TODO: if not ok */
+		action.ResponseChan <- nil
+	} else {
+		action.ResponseChan <- errors.New("failed to create room")
+	}
 }
 
 func dispatchRoomAction(action EntityAction, memData *sharedData) {

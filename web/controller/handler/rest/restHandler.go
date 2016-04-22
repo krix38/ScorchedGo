@@ -28,8 +28,12 @@ func getAllRooms(restData *restFactory.RestHandlerData) (interface{}, error) {
 func createRoom(restData *restFactory.RestHandlerData) (interface{}, error) {
 	room, ok := restData.InputJsonObj.(entity.Room)
 	if ok {
-		dao.CreateRoom(room)
-		return entity.Msg{ Message: "room created" }, nil
+		err := dao.CreateRoom(room)
+		if err != nil {
+			return entity.Msg{ Message: "room created" }, nil
+		}else{
+			return nil, err
+		}
 	}
 	return nil, errors.New("error creating room")
 }
