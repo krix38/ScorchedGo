@@ -9,32 +9,57 @@ func CreateRoom(room entity.Room) error {
 	responseChan := make(chan interface{})
 	dataManager.RoomAction <- dataManager.EntityAction{
 		Entity: room,
+		ResponseChan: responseChan,
 		Action: dataManager.CREATE,
 	}
-	return (<-responseChan).(error)
+	err := <-responseChan
+	if(err != nil){
+		return err.(error)
+	}else{
+		return nil
+	}
+	
 }
 
 func CreatePlayer(player entity.Player) error {
 	responseChan := make(chan interface{})
 	dataManager.PlayerAction <- dataManager.EntityAction{
-		Entity: player,
+		Entity:       player,
 		ResponseChan: responseChan,
-		Action: dataManager.CREATE,
+		Action:       dataManager.CREATE,
 	}
-	return (<-responseChan).(error)
+	err := <-responseChan
+	if(err != nil){
+		return err.(error)
+	}else{
+		return nil
+	}
 }
 
 func LoadRooms() *entity.RoomsList {
 	responseChan := make(chan interface{})
 	dataManager.RoomAction <- dataManager.EntityAction{
 		ResponseChan: responseChan,
-		Action: dataManager.READ,
+		Action:       dataManager.READ,
+		AdditionalData: dataManager.ReadInfo{
+			Mode: dataManager.ALL,
+		},
 	}
 	rooms := <-responseChan
 	roomsConverted, ok := rooms.(entity.RoomsList)
 	if ok {
 		return &roomsConverted
-	}else{
+	} else {
 		return nil
 	}
+}
+
+func UpdateRoom(room entity.Room) error {
+	responseChan := make(chan interface{})
+	dataManager.RoomAction <- dataManager.EntityAction{
+		Entity:       room,
+		ResponseChan: responseChan,
+		Action:       dataManager.UPDATE,
+	}
+	return (<-responseChan).(error)
 }

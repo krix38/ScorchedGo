@@ -30,9 +30,9 @@ func createRoom(restData *restFactory.RestHandlerData) (interface{}, error) {
 	if ok {
 		err := dao.CreateRoom(room)
 		if err != nil {
-			return entity.Msg{ Message: "room created" }, nil
-		}else{
 			return nil, err
+		}else{
+			return entity.Msg{ Message: "room created" }, nil
 		}
 	}
 	return nil, errors.New("error creating room")
