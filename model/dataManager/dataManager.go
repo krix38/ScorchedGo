@@ -2,11 +2,16 @@ package dataManager
 
 import (
 	"errors"
+	"reflect"
 
 	"github.com/krix38/ScorchedGo/model/entity"
 )
 
 type Action int
+
+type EntityCollection interface {
+	GetCollection() []interface{}
+}
 
 const (
 	CREATE Action = iota
@@ -34,35 +39,61 @@ type EntityAction struct {
 	AdditionalData ReadInfo
 }
 
-type sharedData struct {
-	roomsId   int64
-	rooms     entity.RoomsList
+type roomsCollection struct {
+	roomsId int64
+	rooms   entity.RoomsList
+}
+
+type playersCollection struct {
 	playersId int64
 	players   entity.PlayersList
 }
 
-var RoomAction = make(chan EntityAction)
-var PlayerAction = make(chan EntityAction)
+func (r roomsCollection) GetCollection() []interface{} {
+	entityCollection := make([]interface{}, len(r.rooms.Rooms)) // dlaczego nie zwrocic po prostu Rooms?
+	for i := range r.rooms.Rooms {
+		entityCollection[i] = r.rooms.Rooms[i]
+	}
+	return entityCollection
+}
 
-func findRoom(id int64, memData *sharedData) (int, *entity.Room) {
-	for index, room := range memData.rooms.Rooms {
-		if room.Id == id {
-			return index, &room
+func (p playersCollection) GetCollection() []interface{} {
+	entityCollection := make([]interface{}, len(p.players.Players))
+	for i := range p.players.Players {
+		entityCollection[i] = p.players.Players[i]
+	}
+	return entityCollection
+}
+
+var ActionChan = make(chan EntityAction)
+
+var entityMemMapping = make(map[reflect.Type]EntityCollection)
+var sharedPlayersCollection playersCollection
+var sharedRoomsCollection roomsCollection
+
+func init() {
+	sharedPlayersCollection := playersCollection{
+		players:   entity.PlayersList{Players: []entity.Player{}},
+		playersId: 0,
+	}
+	sharedRoomsCollection := roomsCollection{
+		rooms:   entity.RoomsList{Rooms: []entity.Room{}},
+		roomsId: 0,
+	}
+	entityMemMapping[reflect.TypeOf(entity.Room{})] = sharedRoomsCollection
+	entityMemMapping[reflect.TypeOf(entity.Player{})] = sharedPlayersCollection
+}
+
+func findEntity(id int64, entityType reflect.Type) (int, *interface{}) {
+	for index, entity := range entityMemMapping[entityType].GetCollection() {
+		if entity.Id == id {
+			return index, &entity
 		}
 	}
 	return -1, nil
 }
 
-func findPlayer(id int64, memData *sharedData) (int, *entity.Player) {
-	for index, player := range memData.players.Players {
-		if player.Id == id {
-			return index, &player
-		}
-	}
-	return -1, nil
-}
-
-func roomCreate(action EntityAction, memData *sharedData) {
+func entityCreate(action EntityAction) {
 	room, ok := action.Entity.(entity.Room)
 	if ok {
 		memData.roomsId += 1
@@ -74,9 +105,9 @@ func roomCreate(action EntityAction, memData *sharedData) {
 	}
 }
 
-func roomRead(action EntityAction, memData *sharedData) {
+func entityRead(action EntityAction) {
 	switch action.AdditionalData.Mode {
-		
+
 	case ALL:
 		action.ResponseChan <- memData.rooms
 	case SINGLE:
@@ -85,7 +116,7 @@ func roomRead(action EntityAction, memData *sharedData) {
 	}
 }
 
-func roomUpdate(action EntityAction, memData *sharedData) {
+func entityUpdate(action EntityAction) {
 	room, ok := action.Entity.(entity.Room)
 	if ok {
 		index, _ := findRoom(room.Id, memData)
@@ -96,7 +127,7 @@ func roomUpdate(action EntityAction, memData *sharedData) {
 	}
 }
 
-func roomDelete(action EntityAction, memData *sharedData) {
+func entityDelete(action EntityAction) {
 	room, ok := action.Entity.(entity.Room)
 	if ok {
 		index, _ := findRoom(room.Id, memData)
@@ -107,94 +138,23 @@ func roomDelete(action EntityAction, memData *sharedData) {
 	}
 }
 
-func playerCreate(action EntityAction, memData *sharedData) {
-	player, ok := action.Entity.(entity.Player)
-	if ok {
-		memData.playersId += 1
-		player.Id = memData.playersId
-		memData.players.Players = append(memData.players.Players, player)
-		action.ResponseChan <- nil
-	} else {
-		action.ResponseChan <- errors.New("failed to create player")
-	}
-}
-
-func playerRead(action EntityAction, memData *sharedData) {
-	switch action.AdditionalData.Mode {
-		
-	case ALL:
-		action.ResponseChan <- memData.players
-	case SINGLE:
-		_, player := findPlayer(action.AdditionalData.Index, memData)
-		action.ResponseChan <- player
-	}
-}
-
-func playerUpdate(action EntityAction, memData *sharedData) {
-	player, ok := action.Entity.(entity.Player)
-	if ok {
-		index, _ := findPlayer(player.Id, memData)
-		memData.players.Players[index] = player
-		action.ResponseChan <- nil
-	} else {
-		action.ResponseChan <- errors.New("failed to update player")
-	}
-}
-
-func playerDelete(action EntityAction, memData *sharedData) {
-	player, ok := action.Entity.(entity.Player)
-	if ok {
-		index, _ := findPlayer(player.Id, memData)
-		memData.players.Players = append(memData.players.Players[:index], memData.players.Players[index+1:]...)
-		action.ResponseChan <- nil
-	} else {
-		action.ResponseChan <- errors.New("failed to delete player")
-	}
-}
-
-func dispatchRoomAction(action EntityAction, memData *sharedData) {
+func dispatchAction(action EntityAction) {
 	switch action.Action {
 
 	case CREATE:
-		roomCreate(action, memData)
+		entityCreate(action)
 	case READ:
-		roomRead(action, memData)
+		entityRead(action)
 	case UPDATE:
-		roomUpdate(action, memData)
+		entityUpdate(action)
 	case DELETE:
-		roomDelete(action, memData)
-	}
-}
-
-func dispatchPlayerAction(action EntityAction, memData *sharedData) {
-	switch action.Action {
-
-	case CREATE:
-		playerCreate(action, memData)
-	case READ:
-		playerRead(action, memData)
-	case UPDATE:
-		playerUpdate(action, memData)
-	case DELETE:
-		playerDelete(action, memData)
+		entityDelete(action)
 	}
 }
 
 func RunDataManager() {
-	memData := sharedData{
-		rooms:     entity.RoomsList{Rooms: []entity.Room{}},
-		roomsId:   0,
-		players:   entity.PlayersList{Players: []entity.Player{}},
-		playersId: 0,
-	}
 	for {
-		select {
-
-		case action := <-RoomAction:
-			dispatchRoomAction(action, &memData)
-		case action := <-PlayerAction:
-			dispatchPlayerAction(action, &memData)
-
-		}
+		action := <-ActionChan
+		dispatchAction(action)
 	}
 }
